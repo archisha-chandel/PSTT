@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Speech Recognition in Python</title>
+
+    <link rel="icon" type="image/x-icon" href="https://img.icons8.com/doodle/48/000000/microphone--v1.png" />
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- bootstrap -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+        integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+        integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous">
+    </script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+        integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous">
+    </script>
+
+    <!-- bootstrap -end -->
+    <!-- recommended -->
+    <script src="https://www.WebRTC-Experiment.com/RecordRTC.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js" type="text/javascript"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/index.css') }}" />
+
+    <script src="/js/WavAudioEncoder.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@reliutg/buzz-notify/index.min.js"></script>
+
+    <link rel="stylesheet" href="/css/toast.css" />
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Special+Elite&display=swap');
+
+        .custom-file::-webkit-file-upload-button {
+            background-color: #FFD75F;
+            border-radius: 0.25rem;
+        }
+    </style>
+    <script>
+        // $('.filebrowse').change(function () {
+        //     console.log($(this).val());
+        // });
+
+        function sendUploadedFile(e) {
+
+            console.log('called');
+            let file = $('#uploadedFile').prop('files')[0];           
+        
+            postData(file,true);
+        }
+    </script>
+
+
+</head>
+
+<body>
+    <div class="container-fluid text-center">
+        <div class="row">
+            <div class="col">
+                <center>
+                    <h2
+                        style="margin-top: 2rem;font-family: 'Lato', sans-serif;font-weight: 900;text-decoration: underline;">
+                        Python Speech to Text
+                        <img src="https://img.icons8.com/doodle/48/000000/microphone--v1.png" /> </h2>
+                    <br />
+                    <div class="card" style="width: 18rem;">
+                        <div class="card-body">
+                            <form enctype="multipart/form-data">
+                                <input id="uploadedFile" class="custom-file" type="file" name="file" />
+                                <br>
+                                <input type="button" id="submitButton" value="Transcribe"
+                                    onclick="sendUploadedFile()" />
+                            </form>
+
+
+
+                        </div>
+                    </div>
+                </center>
+
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <center>
+                    <div id="speechContainer">
+                        <div>
+                            <button type="button" class="btn btn-primary" id="recordButton">Record</button>
+                            <button disabled type="button" class="btn btn-danger" id="stopButton">Stop</button>
+                        </div>
+                    </div>
+
+
+                </center>
+
+            </div>
+
+        </div>
+        <div class="row">
+            <div class="col">
+                <center>
+                    <div hidden id="spinnerTrans" class="spinner-border text-info" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+
+                    {% if transcript != "" %}
+                    <div id="speechTranscriptContainer">
+                        <h1>Transcript 📝</h1>
+                        <p style="font-family: 'Special Elite', cursive;" id="speechText">{{ transcript }}</p>
+                    </div>
+                    {% endif %}
+                    <div hidden id="recordedSpeechTranscript">
+                        <h1>Transcript 📝</h1>
+
+
+                        <p style="font-family: 'Special Elite', cursive;" id="recordedText"></p>
+                        <br />
+                        <span id="fillerWordsCount" class="badge badge-info">Filler Words : 0</span>
+
+                    </div>
+
+                </center>
+            </div>
+
+
+        </div>
+        </br>
+        <div class="row">
+            <div class="col">
+                <center>
+                    <div hidden id="graphLoader" class="spinner-grow text-primary" role="status">
+                        <span class="sr-only">Loading...</span>
+                    </div>
+                    <div hidden id="graphContainer">
+                        <h3 style="font-weight: bold;">Energy Graph</h3>
+                        <img id="graphImage" src="" height="400" width="600" />
+                    </div>
+                </center>
+            </div>
+
+
+        </div>
+
+    </div>
+    </div>
+    <center>
+
+
+        <div hidden id="formats"></div>
+        <pre hidden>Log</pre>
+        <pre hidden id="log"></pre>
+
+        <pre hidden>Recordings</pre>
+        <ol hidden id="recordingsList"></ol>
+        </div>
+
+
+    </center>
+    <div id="notify"></div>
+
+
+
+</body>
+<script>
+    function createNotification(options, title) {
+        Notify({
+            ...options,
+            title: "Initialized Encoder - Rec Now"
+        });
+
+    }
+
+    function createWaitNotification(options) {
+        Notify({
+            ...options,
+            title: "Please Wait Initializing..."
+        });
+
+    }
+</script>
+<script src="/js/app.js"></script>
+<script src="/js/WebAudioRecorder.min.js"></script>
+
+
+
+</html>
