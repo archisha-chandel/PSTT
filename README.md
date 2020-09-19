@@ -12,3 +12,9 @@ A web application built using Flask.
  `PyAudio` and `SpeechRecognition` are the two main APIs used for implementation. `WebAudioRecorder.js` is a JavaScript library that is used here to record audio input (Web Audio API AudioNode object) and encode to audio file image (Blob object).
  
  Sample audio files are present in [wavFiles](./static/wavFiles)
+ 
+ After installing the requirements, in the terminal use: `python -m flask run` to run the application.
+ 
+ The web application looks like this:
+ 
+ <img src = "./static/images/Page.PNG">
